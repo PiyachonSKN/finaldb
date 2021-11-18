@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    port:
+      - "8080:80"
+    environment:
+      - NGINX_PORT=80
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - sqlite
+    networks:
+        - laravel
+
+  sqlite:
+    image: sqlite:3
+    container_name: sqlite
+    restart: unless-stopped
+    tty: true
+    ports:
+        - 4306:3306
+    volumes:
+        - ./sqlite:/var/lib/sqlite
+    environment:
+      MYSQLITE_DATABASE: database
+    networks:
+      - laravel
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "9000:9000"
+    networks:
+      - laravel
